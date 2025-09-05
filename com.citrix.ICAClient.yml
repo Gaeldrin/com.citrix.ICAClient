@@ -39,7 +39,7 @@ modules:
         ln -s /etc/ssl/certs/*.pem /app/ICAClient/linuxx64/keystore/cacerts/
         /app/ICAClient/linuxx64/util/ctx_rehash /app/ICAClient/linuxx64/keystore/cacerts/
 
-      - install -Dm 644 ${FLATPAK_ID}.appdata.xml ${FLATPAK_DEST}/share/metainfo/${FLATPAK_ID}.appdata.xml
+      - install -Dm 644 ${FLATPAK_ID}.metainfo.xml ${FLATPAK_DEST}/share/metainfo/${FLATPAK_ID}.metainfo.xml
       - install -Dm 644 ${FLATPAK_ID}.desktop ${FLATPAK_DEST}/share/applications/${FLATPAK_ID}.desktop
       - install -Dm 755 run.sh ${FLATPAK_DEST}/bin/run.sh
 
@@ -69,7 +69,7 @@ modules:
       - type: file
         path: install.sh
       - type: file
-        path: com.citrix.ICAClient.appdata.xml # Maybe change to metainfo
+        path: com.citrix.ICAClient.metainfo.xml
       - type: file
         path: com.citrix.ICAClient.desktop
       - type: file
