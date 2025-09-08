@@ -61,15 +61,6 @@ modules:
       - install -Dm 755 run.sh ${FLATPAK_DEST}/bin/run.sh
 
     sources:
-      - type: script
-        dest-filename: Citrix-Workspace
-        commands:
-          - echo "This is a dummy source for x-checker-data only"
-        x-checker-data:
-          type: html
-          url: https://www.citrix.com/downloads/workspace-app/linux/workspace-app-for-linux-latest.html
-          pattern: href=\\\"([^\"]*linuxx64.*?\\.tar\\.gz\\?[^\\\"]+)\\\"
-          version-pattern: linuxx64-([0-9.]+)\\.tar\\.gz
       - type: file
         path: install.sh
       - type: file
