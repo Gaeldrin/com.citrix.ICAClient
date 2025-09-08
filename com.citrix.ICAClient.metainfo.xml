@@ -1,39 +1,44 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version='1.0' encoding='utf-8'?>
 <component type="desktop-application">
-    <id>com.citrix.ICAClient</id>
-    <launchable type="desktop-id">com.citrix.ICAClient.desktop</launchable>
-    <name>Citrix Workspace</name>
-    <summary>Citrix Workspace Flatpak</summary>
-    <developer_name>Citrix Systems Inc.</developer_name>
-    <metadata_license>CC0-1.0</metadata_license>
-    <project_license>LicenseRef-proprietary</project_license>
-    <description>
-        <p>Citrix is a virtual desktop infrastructure (VDI) provider</p>
-        <p>NOTE: This package is not verified by, affiliated with, or supported by Citrix.</p>
-    </description>
-    <categories>
-        <category>Network</category>
-        <category>Office</category>
-    </categories>
-    <url type="homepage">https://github.com/Gaeldrin/com.citrix.ICAClient</url>
-    <url type="help">https://github.com/Gaeldrin/com.citrix.ICAClient#readme</url>
-    <url type="bugtracker">https://github.com/Gaeldrin/com.citrix.ICAClient/issues</url>
-    <provides>
-        <mediatype>application/x-ica</mediatype>
-        <mediatype>application/vnd.citrix.receiver.configure</mediatype>
-    </provides>
-    <agreement type="eula">
-        <agreement_section type="License">
-            <name>CITRIX LICENSE AGREEMENT</name>
-            <description>
-                <p>
+  <id>com.citrix.ICAClient</id>
+  <launchable type="desktop-id">com.citrix.ICAClient.desktop</launchable>
+  <name>Citrix Workspace</name>
+  <summary>Citrix Workspace Flatpak</summary>
+  <developer_name>Citrix Systems Inc.</developer_name>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>LicenseRef-proprietary</project_license>
+  <description>
+    <p>Citrix is a virtual desktop infrastructure (VDI) provider</p>
+    <p>NOTE: This package is not verified by, affiliated with, or supported by Citrix.</p>
+  </description>
+  <categories>
+    <category>Network</category>
+    <category>Office</category>
+  </categories>
+  <url type="homepage">https://github.com/Gaeldrin/com.citrix.ICAClient</url>
+  <url type="help">https://github.com/Gaeldrin/com.citrix.ICAClient#readme</url>
+  <url type="bugtracker">https://github.com/Gaeldrin/com.citrix.ICAClient/issues</url>
+  <provides>
+    <mediatype>application/x-ica</mediatype>
+    <mediatype>application/vnd.citrix.receiver.configure</mediatype>
+  </provides>
+  <agreement type="eula">
+    <agreement_section type="License">
+      <name>CITRIX LICENSE AGREEMENT</name>
+      <description>
+        <p>
                     Use of this component is subject to the Citrix license or terms of service covering the Citrix product(s) and/or service(s) with which you will be using this component. This component is licensed for use only with such Citrix product(s) and/or service(s).
                     CTX_code EP_T_A10352779
                 </p>
-            </description>
-        </agreement_section>
-    </agreement>
-    <releases>
-        <release version="25.05.0.14" date="2025-06-12" />
-    </releases>
+      </description>
+    </agreement_section>
+  </agreement>
+  <releases>
+    <release version="25.05.0.44" date="2025-09-08">
+      <description>
+        <p>Updated to Citrix Workspace App version 25.05.0.44</p>
+      </description>
+    </release>
+    <release version="25.05.0.14" date="2025-06-12" />
+  </releases>
 </component>
