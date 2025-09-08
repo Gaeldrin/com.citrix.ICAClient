@@ -1,0 +1,188 @@
+name: Check Citrix ICA Client Version
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'  # Run weekly on Mondays at 6 AM UTC
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        pip install requests beautifulsoup4 lxml
+        
+    - name: Check for new Citrix version
+      id: version-check
+      run: |
+        python << 'EOF'
+        import requests
+        import re
+        import xml.etree.ElementTree as ET
+        from datetime import datetime
+        import os
+        
+        def extract_latest_version():
+            """Extract latest version from Citrix downloads page"""
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            }
+            
+            # Citrix downloads page for Linux ICA Client
+            url = "https://www.citrix.com/downloads/workspace-app/linux/workspace-app-for-linux-latest.html"
+            
+            try:
+                response = requests.get(url, headers=headers, timeout=30)
+                response.raise_for_status()
+                
+                # Look for download links with version patterns
+                version_pattern = r'linuxx64-(\d+\.\d+\.\d+\.\d+)\.tar\.gz'
+                matches = re.findall(version_pattern, response.text)
+                
+                if matches:
+                    # Return the highest version found
+                    versions = sorted(matches, key=lambda x: tuple(map(int, x.split('.'))))
+                    latest_version = versions[-1]
+                    print(f"Found latest version: {latest_version}")
+                    return latest_version
+                else:
+                    print("No version found in download page")
+                    return None
+                    
+            except Exception as e:
+                print(f"Error fetching version: {e}")
+                return None
+        
+        def get_current_version():
+            """Get current version from metainfo.xml"""
+            try:
+                tree = ET.parse('com.citrix.ICAClient.metainfo.xml')
+                root = tree.getroot()
+                
+                # Find the latest release
+                releases = root.find('.//releases')
+                if releases is not None:
+                    latest_release = releases.find('release')
+                    if latest_release is not None:
+                        return latest_release.get('version')
+                return None
+            except Exception as e:
+                print(f"Error reading current version: {e}")
+                return None
+        
+        def update_metainfo(new_version):
+            """Update metainfo.xml with new version"""
+            try:
+                tree = ET.parse('com.citrix.ICAClient.metainfo.xml')
+                root = tree.getroot()
+                
+                # Find releases section
+                releases = root.find('.//releases')
+                if releases is None:
+                    releases = ET.SubElement(root, 'releases')
+                
+                # Create new release entry
+                new_release = ET.Element('release', {
+                    'version': new_version,
+                    'date': datetime.now().strftime('%Y-%m-%d')
+                })
+                
+                # Add description
+                description = ET.SubElement(new_release, 'description')
+                p = ET.SubElement(description, 'p')
+                p.text = f"Updated to Citrix Workspace App version {new_version}"
+                
+                # Insert at the beginning
+                releases.insert(0, new_release)
+                
+                # Write back to file
+                ET.indent(tree, space="  ")
+                tree.write('com.citrix.ICAClient.metainfo.xml', encoding='utf-8', xml_declaration=True)
+                return True
+                
+            except Exception as e:
+                print(f"Error updating metainfo: {e}")
+                return False
+        
+        # Main logic
+        current_version = get_current_version()
+        latest_version = extract_latest_version()
+        
+        print(f"Current version: {current_version}")
+        print(f"Latest version: {latest_version}")
+        
+        # Set outputs for GitHub Actions
+        with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+            f.write(f"current_version={current_version or 'unknown'}\n")
+            f.write(f"latest_version={latest_version or 'unknown'}\n")
+            
+            if latest_version and current_version != latest_version:
+                f.write(f"needs_update=true\n")
+                f.write(f"new_version={latest_version}\n")
+                
+                # Update the metainfo file
+                if update_metainfo(latest_version):
+                    print(f"Successfully updated metainfo.xml to version {latest_version}")
+                    f.write(f"update_success=true\n")
+                else:
+                    f.write(f"update_success=false\n")
+            else:
+                f.write(f"needs_update=false\n")
+        EOF
+        
+    - name: Create Pull Request
+      if: steps.version-check.outputs.needs_update == 'true' && steps.version-check.outputs.update_success == 'true'
+      uses: peter-evans/create-pull-request@v6
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: 'chore: update Citrix ICA Client to version ${{ steps.version-check.outputs.new_version }}'
+        title: 'Update Citrix ICA Client to version ${{ steps.version-check.outputs.new_version }}'
+        body: |
+          🤖 **Automated Version Update**
+          
+          This PR updates the Citrix ICA Client to version `${{ steps.version-check.outputs.new_version }}`.
+          
+          **Changes:**
+          - Updated metainfo.xml with new release entry
+          - Current version: `${{ steps.version-check.outputs.current_version }}`
+          - New version: `${{ steps.version-check.outputs.new_version }}`
+          
+          **Next Steps:**
+          - [ ] Update the Flatpak manifest with new download URLs and checksums
+          - [ ] Test the build locally
+          - [ ] Verify the installation works correctly
+          
+          > Note: You'll still need to manually update the manifest with the correct download URLs and checksums since Citrix uses authenticated download links.
+          
+        branch: update-citrix-${{ steps.version-check.outputs.new_version }}
+        delete-branch: true
+        
+    - name: Summary
+      run: |
+        echo "## Version Check Summary" >> $GITHUB_STEP_SUMMARY
+        echo "- Current version: ${{ steps.version-check.outputs.current_version }}" >> $GITHUB_STEP_SUMMARY  
+        echo "- Latest version: ${{ steps.version-check.outputs.latest_version }}" >> $GITHUB_STEP_SUMMARY
+        
+        if [ "${{ steps.version-check.outputs.needs_update }}" == "true" ]; then
+          echo "- ✅ New version available: ${{ steps.version-check.outputs.new_version }}" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.version-check.outputs.update_success }}" == "true" ]; then
+            echo "- ✅ Pull request created successfully" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ❌ Failed to update metainfo.xml" >> $GITHUB_STEP_SUMMARY
+          fi
+        else
+          echo "- ✅ No update needed" >> $GITHUB_STEP_SUMMARY
+        fi
