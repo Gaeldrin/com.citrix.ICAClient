@@ -103,14 +103,18 @@ jobs:
                 # Add description
                 description = ET.SubElement(new_release, 'description')
                 p = ET.SubElement(description, 'p')
-                p.text = f"Updated to Citrix Workspace App version {new_version}"
+                p.text = f"Updated to Citrix Workspace app version {new_version}"
                 
                 # Insert at the beginning
                 releases.insert(0, new_release)
                 
                 # Write back to file
-                ET.indent(tree, space="  ")
-                tree.write('com.citrix.ICAClient.metainfo.xml', encoding='utf-8', xml_declaration=True)
+                ET.indent(tree, space="    ")
+                tree.write('com.citrix.ICAClient.metainfo.xml', encoding='UTF-8', xml_declaration=True)
+
+                # Add a newline at the end
+                with open("output.xml", "a") as f:
+                    f.write("\n")
                 return True
                 
             except Exception as e:
@@ -159,13 +163,6 @@ jobs:
           - Updated metainfo.xml with new release entry
           - Current version: `${{ steps.version-check.outputs.current_version }}`
           - New version: `${{ steps.version-check.outputs.new_version }}`
-          
-          **Next Steps:**
-          - [ ] Update the Flatpak manifest with new download URLs and checksums
-          - [ ] Test the build locally
-          - [ ] Verify the installation works correctly
-          
-          > Note: You'll still need to manually update the manifest with the correct download URLs and checksums since Citrix uses authenticated download links.
           
         branch: update-citrix-${{ steps.version-check.outputs.new_version }}
         delete-branch: true
