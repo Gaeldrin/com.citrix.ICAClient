@@ -113,7 +113,7 @@ jobs:
                 tree.write('com.citrix.ICAClient.metainfo.xml', encoding='UTF-8', xml_declaration=True)
 
                 # Add a newline at the end
-                with open("output.xml", "a") as f:
+                with open("com.citrix.ICAClient.metainfo.xml", "a") as f:
                     f.write("\n")
                 return True
                 

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version='1.0' encoding='UTF-8'?>
 <component type="desktop-application">
     <id>com.citrix.ICAClient</id>
     <launchable type="desktop-id">com.citrix.ICAClient.desktop</launchable>
@@ -34,6 +34,6 @@
         </agreement_section>
     </agreement>
     <releases>
-        <release version="25.05.0.14" date="2025-06-12" />
+        <release version="25.05.0.44" date="2025-06-12" />
     </releases>
 </component>
