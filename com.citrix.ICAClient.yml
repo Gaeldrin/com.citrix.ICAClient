@@ -1,6 +1,6 @@
 app-id: com.citrix.ICAClient
 runtime: org.gnome.Platform
-runtime-version: "42" #Requirements as per Citrix's site: https://docs.citrix.com/en-us/citrix-workspace-app-for-linux/system-requirements.html
+runtime-version: "42" # Requirements as per Citrix's site: https://docs.citrix.com/en-us/citrix-workspace-app-for-linux/system-requirements.html
 sdk: org.gnome.Sdk
 command: /app/bin/run.sh
 
@@ -13,11 +13,11 @@ finish-args:
   - --share=network
   - --socket=pulseaudio
   - --socket=x11
-  - --share=ipc #Required for X11 to work properly
+  - --share=ipc # Required for X11 to work properly
   - --env=ICAROOT=/app/ICAClient
-  - --filesystem=xdg-download #Access to downloaded ica files
-  - --persist=. #Gives the app a persistent that is treated as the home directory, located at ~/.var/app/com.citrix.ICAClient
-  - --persist=.ICAClient #Log/config directory (relative to the Flatpak container home folder)
+  - --filesystem=xdg-download # Access to downloaded ica files
+  - --persist=. # Gives the app a persistent that is treated as the home directory, located at ~/.var/app/com.citrix.ICAClient
+  - --persist=.ICAClient # Log/config directory (relative to the Flatpak container home folder)
 
 modules:
   - name: icaclient
@@ -53,8 +53,8 @@ modules:
         install -Dm 644 /tmp/icaclient/${folder}/${folder}.cor/icons/000_Receiver_64.png ${FLATPAK_DEST}/share/icons/hicolor/64x64/apps/${FLATPAK_ID}.png
         install -Dm 644 /tmp/icaclient/${folder}/${folder}.cor/icons/receiver.png ${FLATPAK_DEST}/share/icons/hicolor/256x256/apps/${FLATPAK_ID}.png
 
-        ln -s /etc/ssl/certs/*.pem /app/ICAClient/linuxx64/keystore/cacerts/
-        /app/ICAClient/linuxx64/util/ctx_rehash /app/ICAClient/linuxx64/keystore/cacerts/
+      - ln -s /etc/ssl/certs/*.pem /app/ICAClient/keystore/cacerts/
+      - /app/ICAClient/util/ctx_rehash /app/ICAClient/keystore/cacerts/
 
       - install -Dm 644 ${FLATPAK_ID}.metainfo.xml ${FLATPAK_DEST}/share/metainfo/${FLATPAK_ID}.metainfo.xml
       - install -Dm 644 ${FLATPAK_ID}.desktop ${FLATPAK_DEST}/share/applications/${FLATPAK_ID}.desktop
