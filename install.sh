@@ -1,12 +1,16 @@
 #!/bin/bash
 
 #Set the default install directory in the Workspace install script
-sed -ie 's/DefaultInstallDir=.*$/DefaultInstallDir=\/app\/ICAClient\/linuxx64/' /tmp/icaclient/linuxx64/hinst
+if [[ "$(uname -m)" == "x86_64" ]]; then
+    sed -ie 's/DefaultInstallDir=.*$/DefaultInstallDir=\/app\/ICAClient/' /tmp/icaclient/linuxx64/hinst
+else
+    sed -ie 's/DefaultInstallDir=.*$/DefaultInstallDir=\/app\/ICAClient/' /tmp/icaclient/linuxarm64/hinst
+fi
 #The installation options selected below answer yes to using the gstreamer pluging from ICAClient. The "app protection component" and USB support
 #require the installer to be run as root, so they cannot be installed in this case.
 echo -e "1\n\ny\nyes\ny\n3\n" | /tmp/icaclient/setupwfc
 
-cd /app/ICAClient/linuxx64
+cd /app/ICAClient
 MODULE_INI=config/module.iniflatpak
 if [ -L "$MODULE_INI" ] ; then
     MODULE_INI=$(readlink -f "$MODULE_INI")

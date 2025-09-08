@@ -6,10 +6,10 @@ if [[ -d $HOME/.ICAClient/.tmp ]]; then
 fi
 
 # Add binaries to its path
-PATH=/app/ICAClient/linuxx64:$PATH
+PATH=/app/ICAClient:$PATH
 
 # Start the Citrix logging service
-/app/ICAClient/linuxx64/util/ctxcwalogd
+/app/ICAClient/util/ctxcwalogd
 
 if [ $# -eq 0 ]
   then

@@ -14,7 +14,7 @@ finish-args:
   - --socket=pulseaudio
   - --socket=x11
   - --share=ipc #Required for X11 to work properly
-  - --env=ICAROOT=/app/ICAClient/linuxx64
+  - --env=ICAROOT=/app/ICAClient
   - --filesystem=xdg-download #Access to downloaded ica files
   - --persist=. #Gives the app a persistent that is treated as the home directory, located at ~/.var/app/com.citrix.ICAClient
   - --persist=.ICAClient #Log/config directory (relative to the Flatpak container home folder)
@@ -24,17 +24,24 @@ modules:
     buildsystem: simple
     build-commands:
       - |
-        cp ./install.sh /tmp
-        chmod +x /tmp/install.sh
+        folder=""
+        arch=$(uname -m)
+        if [[ "$arch" == "x86_64" ]]; then
+          folder="linuxx64"
+        elif [[ "$arch" == "aarch64" ]]; then
+          folder="linuxarm64"
+        else
+          echo "Unsupported architecture. This should be checked and avoided by Flathub."
+          exit 1
+        fi
 
         mkdir -p /tmp/icaclient
         tar -zxf linux.tar.gz --directory=/tmp/icaclient
-        mkdir -p /app/share/icons/hicolor/64x64/apps
-        cp /tmp/icaclient/linuxx64/linuxx64.cor/icons/000_Receiver_64.png /app/share/icons/hicolor/64x64/apps/com.citrix.ICAClient.png
-        mkdir -p /app/share/icons/hicolor/256x256/apps
-        cp /tmp/icaclient/linuxx64/linuxx64.cor/icons/receiver.png /app/share/icons/hicolor/256x256/apps/com.citrix.ICAClient.png
 
         /tmp/install.sh
+
+        install -Dm 644 /tmp/icaclient/${folder}/${folder}.cor/icons/000_Receiver_64.png ${FLATPAK_DEST}/share/icons/hicolor/64x64/apps/${FLATPAK_ID}.png
+        install -Dm 644 /tmp/icaclient/${folder}/${folder}.cor/icons/receiver.png ${FLATPAK_DEST}/share/icons/hicolor/256x256/apps/${FLATPAK_ID}.png
 
         ln -s /etc/ssl/certs/*.pem /app/ICAClient/linuxx64/keystore/cacerts/
         /app/ICAClient/linuxx64/util/ctx_rehash /app/ICAClient/linuxx64/keystore/cacerts/
