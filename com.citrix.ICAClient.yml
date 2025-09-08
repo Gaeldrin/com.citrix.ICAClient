@@ -35,10 +35,20 @@ modules:
           exit 1
         fi
 
-        mkdir -p /tmp/icaclient
-        tar -zxf linux.tar.gz --directory=/tmp/icaclient
+        url=$(wget -q -O - https://www.citrix.com/downloads/workspace-app/linux/workspace-app-for-linux-latest.html | sed -ne "/${folder}.*tar.gz/ s/<a .* rel=\"\(.*\)\" id=\"downloadcomponent.*\">/https:\1/p" | sed -e 's/\r//g' | xargs)
+        echo "Downloading Citrix Workspace from ${url}"
+        wget -nv --show-progress "${url}" -O /tmp/linux.tar.gz
 
-        /tmp/install.sh
+        if [ ! -f /tmp/linux.tar.gz ]; then
+          exit 1
+        fi
+
+        mkdir /tmp/icaclient
+        echo "Unpacking.."
+        tar -zxf /tmp/linux.tar.gz --directory=/tmp/icaclient
+
+        chmod +x install.sh
+        ./install.sh
 
         install -Dm 644 /tmp/icaclient/${folder}/${folder}.cor/icons/000_Receiver_64.png ${FLATPAK_DEST}/share/icons/hicolor/64x64/apps/${FLATPAK_ID}.png
         install -Dm 644 /tmp/icaclient/${folder}/${folder}.cor/icons/receiver.png ${FLATPAK_DEST}/share/icons/hicolor/256x256/apps/${FLATPAK_ID}.png
@@ -51,28 +61,15 @@ modules:
       - install -Dm 755 run.sh ${FLATPAK_DEST}/bin/run.sh
 
     sources:
-      - type: file
-        dest-filename: linux.tar.gz
-        only-arches:
-          - x86_64
-        url: https://downloads.citrix.com/25013/linuxx64-25.05.0.44.tar.gz?__gda__=exp=1756379634~acl=/*~hmac=7dcdd34bb266935cca6c0889c1fce90404723e1fea4b484cce15d6de6220efef
-        sha256: 1d731722700153cd24e229f423e8bd7dc217eaed4aa3591620ba72fd5ed7983b
+      - type: script
+        dest-filename: Citrix-Workspace
+        commands:
+          - echo "This is a dummy source for x-checker-data only"
         x-checker-data:
           type: html
           url: https://www.citrix.com/downloads/workspace-app/linux/workspace-app-for-linux-latest.html
           pattern: href=\\\"([^\"]*linuxx64.*?\\.tar\\.gz\\?[^\\\"]+)\\\"
           version-pattern: linuxx64-([0-9.]+)\\.tar\\.gz
-      - type: file
-        dest-filename: linux.tar.gz
-        only-arches:
-          - aarch64
-        url: https://downloads.citrix.com/25013/linuxarm64-25.05.0.44.tar.gz?__gda__=exp=1756379634~acl=/*~hmac=7dcdd34bb266935cca6c0889c1fce90404723e1fea4b484cce15d6de6220efef
-        sha256: 47f2d99cdacfb607c79e9b257bd7d9caa7ee1bb0658873ce94c6e598ba38917c
-        x-checker-data:
-          type: html
-          url: https://www.citrix.com/downloads/workspace-app/linux/workspace-app-for-linux-latest.html
-          pattern: href=\\\"([^\"]*linuxarm64.*?\\.tar\\.gz\\?[^\\\"]+)\\\"
-          version-pattern: linuxarm64-([0-9.]+)\\.tar\\.gz
       - type: file
         path: install.sh
       - type: file
