@@ -187,7 +187,10 @@ jobs:
 
     # Debug info
     - name: List built refs
-      run: flatpak --repo=repo list --app --columns=application,arch,branch
+      if: always()
+      run: |
+        flatpak --repo=repo list --app --columns=application,arch,branch
+        flatpak list --app --columns=application,arch,branch
 
     # Create .flatpakref file for easy installation
     - name: Generate flatpakref file
