@@ -36,7 +36,7 @@ jobs:
     # Support multiple architectures if needed
     strategy:
       matrix:
-        arch: [x86_64]  # Add aarch64 if you want to support ARM64
+        arch: [x86_64, aarch64]
       fail-fast: false
       max-parallel: 1  # Prevent conflicts when using shared repository cache
 
@@ -114,12 +114,12 @@ jobs:
 
             <h3>Add this repository:</h3>
             <div class="code-block">
-        flatpak remote-add --if-not-exists citrix-ica-client https://gaeldrin.github.io/com.citrix.ICAClient/index.flatpakrepo
+        flatpak remote-add --if-not-exists ica-client https://gaeldrin.github.io/com.citrix.ICAClient/index.flatpakrepo
             </div>
 
             <h3>Install the application:</h3>
             <div class="code-block">
-        flatpak install citrix-ica-client com.citrix.ICAClient
+        flatpak install ica-client com.citrix.ICAClient
             </div>
 
             <h3>Run the application:</h3>
@@ -183,12 +183,7 @@ jobs:
         # Optional: Add custom flatpak-builder arguments
         flatpak-builder-args: |
           --disable-rofiles-fuse
-
-    # Debug info
-    - name: List built refs
-      if: always()
-      run: |
-        flatpak list --app --columns=application,arch,branch
+          --default-branch=master
 
     # Create .flatpakref file for easy installation
     - name: Generate flatpakref file
@@ -236,7 +231,7 @@ jobs:
     name: Notify Build Status
     runs-on: ubuntu-latest
     needs: [build-flatpak, deploy-pages]
-    if: github.event_name != 'schedule'
+    if: github.event_name == 'schedule'
 
     steps:
     - name: Build Summary
@@ -255,8 +250,8 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 🚀 Installation Instructions" >> $GITHUB_STEP_SUMMARY
           echo '```bash' >> $GITHUB_STEP_SUMMARY
-          echo 'flatpak remote-add --if-not-exists citrix-ica-client https://gaeldrin.github.io/com.citrix.ICAClient/index.flatpakrepo' >> $GITHUB_STEP_SUMMARY
-          echo 'flatpak install citrix-ica-client com.citrix.ICAClient' >> $GITHUB_STEP_SUMMARY
+          echo 'flatpak remote-add --if-not-exists ica-client https://gaeldrin.github.io/com.citrix.ICAClient/index.flatpakrepo' >> $GITHUB_STEP_SUMMARY
+          echo 'flatpak install ica-client com.citrix.ICAClient' >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
         else
           echo "❌ **Build or deployment failed. Check the logs above.**" >> $GITHUB_STEP_SUMMARY

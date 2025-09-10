@@ -1,4 +1,4 @@
-app-id: com.citrix.ICAClient
+id: com.citrix.ICAClient
 runtime: org.gnome.Platform
 runtime-version: "42" # Requirements as per Citrix's site: https://docs.citrix.com/en-us/citrix-workspace-app-for-linux/system-requirements.html
 sdk: org.gnome.Sdk
@@ -31,7 +31,7 @@ modules:
         elif [[ "$arch" == "aarch64" ]]; then
           folder="linuxarm64"
         else
-          echo "Unsupported architecture. This should be checked and avoided by Flathub."
+          echo "Unsupported architecture. This should not happen."
           exit 1
         fi
 
