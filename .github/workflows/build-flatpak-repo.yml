@@ -203,7 +203,7 @@ jobs:
         [Flatpak Ref]
         Title=Citrix ICA Client
         Name=com.citrix.ICAClient
-        Branch=stable
+        Branch=master
         Url=$REPO_URL
         IsRuntime=false
         Comment=Citrix ICA Client for accessing Citrix Virtual Apps and Desktops
@@ -231,12 +231,12 @@ jobs:
       id: deployment
       uses: actions/deploy-pages@v4
 
-  # Notify about updates (optional)
+  # Notify about updates
   notify:
     name: Notify Build Status
     runs-on: ubuntu-latest
     needs: [build-flatpak, deploy-pages]
-    if: always() && github.event_name == 'schedule'
+    if: github.event_name != 'schedule'
 
     steps:
     - name: Build Summary
