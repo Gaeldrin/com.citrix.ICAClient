@@ -185,6 +185,10 @@ jobs:
           --default-branch=stable
           --disable-rofiles-fuse
 
+    # Debug info
+    - name: List built refs
+      run: flatpak --repo=repo list --app --columns=application,arch,branch
+
     # Create .flatpakref file for easy installation
     - name: Generate flatpakref file
       if: matrix.arch == 'x86_64'  # Only generate once
