@@ -6,7 +6,6 @@ on:
     branches: [master, main]
     paths:
       - 'com.citrix.ICAClient.yml'
-      - 'com.citrix.ICAClient.json'
       - 'com.citrix.ICAClient.metainfo.xml'
       - '.github/workflows/build-flatpak-repo.yml'
 
@@ -183,7 +182,6 @@ jobs:
         # Optional: Add custom flatpak-builder arguments
         flatpak-builder-args: |
           --disable-rofiles-fuse
-          --force-clean
 
     # Create .flatpakref file for easy installation
     - name: Generate flatpakref file

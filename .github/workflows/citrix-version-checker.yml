@@ -190,7 +190,7 @@ jobs:
       with:
         script: |
           const workflow_id = 'build-flatpak-repo.yml';
-          const ref = 'master'; // or 'main' depending on your default branch
+          const ref = 'master';
 
           try {
             const result = await github.rest.actions.createWorkflowDispatch({
