@@ -183,7 +183,7 @@ jobs:
         # Optional: Add custom flatpak-builder arguments
         flatpak-builder-args: |
           --disable-rofiles-fuse
-          --default-branch=master
+          --force-clean
 
     # Create .flatpakref file for easy installation
     - name: Generate flatpakref file
