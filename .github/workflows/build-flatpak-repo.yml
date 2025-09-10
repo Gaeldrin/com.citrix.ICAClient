@@ -30,7 +30,7 @@ jobs:
 
     # Use Freedesktop runtime container
     container:
-      image: ghcr.io/andyholmes/flatter/freedesktop:24.08
+      image: ghcr.io/andyholmes/flatter/freedesktop:25.08
       options: --privileged
 
     # Support multiple architectures if needed
@@ -182,14 +182,12 @@ jobs:
           index.html
         # Optional: Add custom flatpak-builder arguments
         flatpak-builder-args: |
-          --default-branch=stable
           --disable-rofiles-fuse
 
     # Debug info
     - name: List built refs
       if: always()
       run: |
-        flatpak --repo=repo list --app --columns=application,arch,branch
         flatpak list --app --columns=application,arch,branch
 
     # Create .flatpakref file for easy installation
