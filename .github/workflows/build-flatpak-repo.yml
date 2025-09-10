@@ -1,0 +1,253 @@
+name: Build Flatpak Repository
+
+on:
+  # Build when there are changes to the manifest or version updates
+  push:
+    branches: [master, main]
+    paths:
+      - 'com.citrix.ICAClient.yml'
+      - 'com.citrix.ICAClient.json'
+      - 'com.citrix.ICAClient.metainfo.xml'
+      - '.github/workflows/build-flatpak-repo.yml'
+
+  # Rebuild daily to check for updates
+  schedule:
+    - cron: "0 2 * * *"  # Run at 2 AM UTC daily
+
+  # Allow manual triggering
+  workflow_dispatch:
+    inputs:
+      force_build:
+        description: 'Force rebuild even if no changes'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  build-flatpak:
+    name: Build Flatpak Repository
+    runs-on: ubuntu-latest
+
+    # Use Freedesktop runtime container (suitable for Citrix ICA Client)
+    container:
+      image: ghcr.io/andyholmes/flatter/freedesktop:24.08
+      options: --privileged
+
+    # Support multiple architectures if needed
+    strategy:
+      matrix:
+        arch: [x86_64]  # Add aarch64 if you want to support ARM64
+      fail-fast: false
+      max-parallel: 1  # Prevent conflicts when using shared repository cache
+
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # Setup GPG signing for the repository (optional but recommended)
+    - name: Setup GPG
+      if: ${{ github.event_name != 'pull_request' && vars.ENABLE_GPG_SIGNING == 'true' }}
+      id: gpg
+      uses: crazy-max/ghaction-import-gpg@v6
+      with:
+        gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+        passphrase: ${{ secrets.GPG_PASSPHRASE }}
+
+    # Generate repository metadata files
+    - name: Generate repository files
+      run: |
+        # Create CNAME file for custom domain (optional)
+        if [ -n "${{ vars.CUSTOM_DOMAIN }}" ]; then
+          echo "${{ vars.CUSTOM_DOMAIN }}" > CNAME
+        fi
+
+        # Create a simple index.html for the repository
+        cat > index.html << 'EOF'
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Citrix ICA Client Flatpak Repository</title>
+            <style>
+                body {
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    max-width: 800px;
+                    margin: 0 auto;
+                    padding: 2rem;
+                    line-height: 1.6;
+                    color: #333;
+                }
+                .header {
+                    text-align: center;
+                    margin-bottom: 2rem;
+                }
+                .code-block {
+                    background: #f5f5f5;
+                    border: 1px solid #ddd;
+                    border-radius: 4px;
+                    padding: 1rem;
+                    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+                    overflow-x: auto;
+                }
+                .warning {
+                    background: #fff3cd;
+                    border: 1px solid #ffeaa7;
+                    border-radius: 4px;
+                    padding: 1rem;
+                    margin: 1rem 0;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>🏢 Citrix ICA Client</h1>
+                <p>Unofficial Flatpak Repository</p>
+            </div>
+
+            <h2>📦 Installation</h2>
+
+            <h3>Add this repository:</h3>
+            <div class="code-block">
+        flatpak remote-add --if-not-exists citrix-ica-client https://gaeldrin.github.io/com.citrix.ICAClient/index.flatpakrepo
+            </div>
+
+            <h3>Install the application:</h3>
+            <div class="code-block">
+        flatpak install citrix-ica-client com.citrix.ICAClient
+            </div>
+
+            <h3>Run the application:</h3>
+            <div class="code-block">
+        flatpak run com.citrix.ICAClient
+            </div>
+
+            <div class="warning">
+                <strong>⚠️ Note:</strong> This is an unofficial Flatpak packaging of Citrix ICA Client.
+                Citrix ICA Client is proprietary software owned by Citrix Systems, Inc.
+            </div>
+
+            <h2>🔗 Links</h2>
+            <ul>
+                <li><a href="https://github.com/Gaeldrin/com.citrix.ICAClient">Source Repository</a></li>
+                <li><a href="https://www.citrix.com/downloads/workspace-app/">Official Citrix Downloads</a></li>
+                <li><a href="https://docs.citrix.com/en-us/citrix-workspace-app-for-linux.html">Citrix Documentation</a></li>
+            </ul>
+
+            <footer style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #eee; text-align: center; color: #666;">
+                <p>Last updated: <span id="last-updated"></span></p>
+                <script>
+                    document.getElementById('last-updated').textContent = new Date().toISOString().split('T')[0];
+                </script>
+            </footer>
+        </body>
+        </html>
+        EOF
+
+        # Create a basic CSS file for styling
+        cat > default.css << 'EOF'
+        /* Additional styling can be added here */
+        .flatpak-ref {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+        }
+        EOF
+
+    # Build the Flatpak using Flatter
+    - name: Build Flatpak
+      uses: andyholmes/flatter@main
+      with:
+        files: |
+          com.citrix.ICAClient.yml
+        arch: ${{ matrix.arch }}
+        gpg-sign: ${{ steps.gpg.outputs.fingerprint }}
+        upload-bundles: true
+        upload-pages-artifact: ${{ matrix.arch == 'x86_64' }}  # Upload pages artifact for the last/main architecture
+        upload-pages-includes: |
+          CNAME
+          default.css
+          index.html
+        # Optional: Add custom flatpak-builder arguments
+        flatpak-builder-args: |
+          --default-branch=stable
+          --disable-rofiles-fuse
+
+    # Create .flatpakref file for easy installation
+    - name: Generate flatpakref file
+      if: matrix.arch == 'x86_64'  # Only generate once
+      run: |
+        REPO_URL="https://gaeldrin.github.io/com.citrix.ICAClient"
+        if [ -f CNAME ]; then
+          REPO_URL="https://$(cat CNAME)"
+        fi
+
+        cat > com.citrix.ICAClient.flatpakref << EOF
+        [Flatpak Ref]
+        Title=Citrix ICA Client
+        Name=com.citrix.ICAClient
+        Branch=stable
+        Url=$REPO_URL
+        IsRuntime=false
+        Comment=Citrix ICA Client for accessing Citrix Virtual Apps and Desktops
+        Description=Citrix ICA Client (also known as Citrix Workspace App) allows you to access virtual applications and desktops from Citrix Virtual Apps and Desktops (formerly XenApp and XenDesktop).
+        Icon=https://raw.githubusercontent.com/Gaeldrin/com.citrix.ICAClient/master/citrix-workspace.png
+        EOF
+
+  # Deploy to GitHub Pages
+  deploy-pages:
+    name: Deploy to GitHub Pages
+    runs-on: ubuntu-latest
+    needs: build-flatpak
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
+
+  # Notify about updates (optional)
+  notify:
+    name: Notify Build Status
+    runs-on: ubuntu-latest
+    needs: [build-flatpak, deploy-pages]
+    if: always() && github.event_name == 'schedule'
+
+    steps:
+    - name: Build Summary
+      run: |
+        echo "## 📦 Flatpak Repository Build Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "- **Repository**: ${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Build Status**: ${{ needs.build-flatpak.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Deploy Status**: ${{ needs.deploy-pages.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Repository URL**: https://gaeldrin.github.io/com.citrix.ICAClient/" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        if [ "${{ needs.build-flatpak.result }}" == "success" ] && [ "${{ needs.deploy-pages.result }}" == "success" ]; then
+          echo "✅ **Repository successfully built and deployed!**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🚀 Installation Instructions" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY
+          echo 'flatpak remote-add --if-not-exists citrix-ica-client https://gaeldrin.github.io/com.citrix.ICAClient/index.flatpakrepo' >> $GITHUB_STEP_SUMMARY
+          echo 'flatpak install citrix-ica-client com.citrix.ICAClient' >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ **Build or deployment failed. Check the logs above.**" >> $GITHUB_STEP_SUMMARY
+        fi

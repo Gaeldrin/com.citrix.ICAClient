@@ -1,4 +1,4 @@
-name: Check Citrix ICA Client Version
+name: Check Citrix version and update repository
 
 on:
   schedule:
@@ -11,20 +11,26 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-    
+      actions: write  # Permission to trigger other workflows
+
+    outputs:
+      needs_update: ${{ steps.version-check.outputs.needs_update }}
+      new_version: ${{ steps.version-check.outputs.new_version }}
+      current_version: ${{ steps.version-check.outputs.current_version }}
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-      
+
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.11'
-        
+
     - name: Install dependencies
       run: |
         pip install requests beautifulsoup4 lxml
-        
+
     - name: Check for new Citrix version
       id: version-check
       run: |
@@ -34,24 +40,24 @@ jobs:
         import xml.etree.ElementTree as ET
         from datetime import datetime
         import os
-        
+
         def extract_latest_version():
             """Extract latest version from Citrix downloads page"""
             headers = {
                 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
             }
-            
+
             # Citrix downloads page for Linux ICA Client
             url = "https://www.citrix.com/downloads/workspace-app/linux/workspace-app-for-linux-latest.html"
-            
+
             try:
                 response = requests.get(url, headers=headers, timeout=30)
                 response.raise_for_status()
-                
+
                 # Look for download links with version patterns
                 version_pattern = r'linuxx64-(\d+\.\d+\.\d+\.\d+)\.tar\.gz'
                 matches = re.findall(version_pattern, response.text)
-                
+
                 if matches:
                     # Return the highest version found
                     versions = sorted(matches, key=lambda x: tuple(map(int, x.split('.'))))
@@ -61,17 +67,17 @@ jobs:
                 else:
                     print("No version found in download page")
                     return None
-                    
+
             except Exception as e:
                 print(f"Error fetching version: {e}")
                 return None
-        
+
         def get_current_version():
             """Get current version from metainfo.xml"""
             try:
                 tree = ET.parse('com.citrix.ICAClient.metainfo.xml')
                 root = tree.getroot()
-                
+
                 # Find the latest release
                 releases = root.find('.//releases')
                 if releases is not None:
@@ -82,32 +88,32 @@ jobs:
             except Exception as e:
                 print(f"Error reading current version: {e}")
                 return None
-        
+
         def update_metainfo(new_version):
             """Update metainfo.xml with new version"""
             try:
                 tree = ET.parse('com.citrix.ICAClient.metainfo.xml')
                 root = tree.getroot()
-                
+
                 # Find releases section
                 releases = root.find('.//releases')
                 if releases is None:
                     releases = ET.SubElement(root, 'releases')
-                
+
                 # Create new release entry
                 new_release = ET.Element('release', {
                     'version': new_version,
                     'date': datetime.now().strftime('%Y-%m-%d')
                 })
-                
+
                 # Add description
                 description = ET.SubElement(new_release, 'description')
                 p = ET.SubElement(description, 'p')
                 p.text = f"Updated to Citrix Workspace app version {new_version}"
-                
+
                 # Insert at the beginning
                 releases.insert(0, new_release)
-                
+
                 # Write back to file
                 ET.indent(tree, space="    ")
                 tree.write('com.citrix.ICAClient.metainfo.xml', encoding='UTF-8', xml_declaration=True)
@@ -116,27 +122,27 @@ jobs:
                 with open("com.citrix.ICAClient.metainfo.xml", "a") as f:
                     f.write("\n")
                 return True
-                
+
             except Exception as e:
                 print(f"Error updating metainfo: {e}")
                 return False
-        
+
         # Main logic
         current_version = get_current_version()
         latest_version = extract_latest_version()
-        
+
         print(f"Current version: {current_version}")
         print(f"Latest version: {latest_version}")
-        
+
         # Set outputs for GitHub Actions
         with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
             f.write(f"current_version={current_version or 'unknown'}\n")
             f.write(f"latest_version={latest_version or 'unknown'}\n")
-            
+
             if latest_version and current_version != latest_version:
                 f.write(f"needs_update=true\n")
                 f.write(f"new_version={latest_version}\n")
-                
+
                 # Update the metainfo file
                 if update_metainfo(latest_version):
                     print(f"Successfully updated metainfo.xml to version {latest_version}")
@@ -146,7 +152,7 @@ jobs:
             else:
                 f.write(f"needs_update=false\n")
         EOF
-        
+
     - name: Create Pull Request
       if: steps.version-check.outputs.needs_update == 'true' && steps.version-check.outputs.update_success == 'true'
       uses: peter-evans/create-pull-request@v6
@@ -156,30 +162,75 @@ jobs:
         title: 'Update Citrix ICA Client to version ${{ steps.version-check.outputs.new_version }}'
         body: |
           🤖 **Automated Version Update**
-          
+
           This PR updates the Citrix ICA Client to version `${{ steps.version-check.outputs.new_version }}`.
-          
+
           **Changes:**
           - Updated metainfo.xml with new release entry
           - Current version: `${{ steps.version-check.outputs.current_version }}`
           - New version: `${{ steps.version-check.outputs.new_version }}`
-          
+
+          **Automatic Actions:**
+          - The Flatpak repository will be automatically rebuilt after this PR is merged
+          - Users will be able to update using `flatpak update`
+
         branch: update-citrix-${{ steps.version-check.outputs.new_version }}
         delete-branch: true
-        
+
+  # Trigger repository rebuild if manifest files are updated
+  trigger-rebuild:
+    name: Trigger Repository Rebuild
+    runs-on: ubuntu-latest
+    needs: check-version
+    if: needs.check-version.outputs.needs_update == 'true'
+
+    steps:
+    - name: Trigger Repository Build
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const workflow_id = 'build-flatpak-repo.yml';
+          const ref = 'master'; // or 'main' depending on your default branch
+
+          try {
+            const result = await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: workflow_id,
+              ref: ref,
+              inputs: {
+                force_build: 'true'
+              }
+            });
+
+            console.log(`Triggered repository rebuild for version ${context.payload.inputs.new_version || 'latest'}`);
+
+            // Add to step summary
+            core.summary
+              .addHeading('🚀 Repository Rebuild Triggered')
+              .addRaw(`New version detected: **${{ needs.check-version.outputs.new_version }}**`)
+              .addRaw('\n\nA repository rebuild has been triggered automatically.')
+              .addRaw('\n\nThe updated Flatpak will be available shortly at:')
+              .addRaw('\n```')
+              .addRaw('\nhttps://gaeldrin.github.io/com.citrix.ICAClient/')
+              .addRaw('\n```')
+              .write();
+
+          } catch (error) {
+            console.error('Failed to trigger workflow:', error);
+            core.setFailed(`Failed to trigger repository rebuild: ${error.message}`);
+          }
+
     - name: Summary
       run: |
-        echo "## Version Check Summary" >> $GITHUB_STEP_SUMMARY
-        echo "- Current version: ${{ steps.version-check.outputs.current_version }}" >> $GITHUB_STEP_SUMMARY  
-        echo "- Latest version: ${{ steps.version-check.outputs.latest_version }}" >> $GITHUB_STEP_SUMMARY
-        
-        if [ "${{ steps.version-check.outputs.needs_update }}" == "true" ]; then
-          echo "- ✅ New version available: ${{ steps.version-check.outputs.new_version }}" >> $GITHUB_STEP_SUMMARY
-          if [ "${{ steps.version-check.outputs.update_success }}" == "true" ]; then
-            echo "- ✅ Pull request created successfully" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "- ❌ Failed to update metainfo.xml" >> $GITHUB_STEP_SUMMARY
-          fi
-        else
-          echo "- ✅ No update needed" >> $GITHUB_STEP_SUMMARY
-        fi
+        echo "## Version Check and Repository Update Summary" >> $GITHUB_STEP_SUMMARY
+        echo "- Current version: ${{ needs.check-version.outputs.current_version }}" >> $GITHUB_STEP_SUMMARY
+        echo "- Latest version: ${{ needs.check-version.outputs.latest_version }}" >> $GITHUB_STEP_SUMMARY
+        echo "- Update needed: ${{ needs.check-version.outputs.needs_update }}" >> $GITHUB_STEP_SUMMARY
+        echo "- Repository rebuild: ✅ Triggered" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📦 Repository Access" >> $GITHUB_STEP_SUMMARY
+        echo "Users can install the updated version using:" >> $GITHUB_STEP_SUMMARY
+        echo '```bash' >> $GITHUB_STEP_SUMMARY
+        echo 'flatpak update com.citrix.ICAClient' >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
