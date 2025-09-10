@@ -118,7 +118,7 @@ jobs:
 
             <h3>Install the application:</h3>
             <div class="code-block">
-        flatpak install ica-client com.citrix.ICAClient
+        flatpak install com.citrix.ICAClient
             </div>
 
             <h3>Run the application:</h3>
@@ -127,8 +127,9 @@ jobs:
             </div>
 
             <div class="warning">
-                <strong>⚠️ Note:</strong> This is an unofficial Flatpak packaging of Citrix ICA Client.
+                <strong>⚠️ Note:</strong> This is an unofficial Flatpak packaging of Citrix ICA Client for my personal use.
                 Citrix ICA Client is proprietary software owned by Citrix Systems, Inc.
+                If you want to use Citrix Workspace app, you should download it from official Citrix downloads or build it yourself from the source repository (links below).
             </div>
 
             <h2>🔗 Links</h2>
@@ -150,7 +151,6 @@ jobs:
 
         # Create a basic CSS file for styling
         cat > default.css << 'EOF'
-        /* Additional styling can be added here */
         .flatpak-ref {
             background: #f8f9fa;
             border: 1px solid #dee2e6;
