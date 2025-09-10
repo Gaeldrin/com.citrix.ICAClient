@@ -11,4 +11,4 @@ Actions=Preferences
 
 [Desktop Action Preferences]
 Name=Preferences
-Exec=/app/ICAClient/linuxx64/util/configmgr
+Exec=/app/ICAClient/util/configmgr
