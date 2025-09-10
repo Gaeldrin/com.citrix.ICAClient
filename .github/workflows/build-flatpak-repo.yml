@@ -35,7 +35,7 @@ jobs:
     # Support multiple architectures if needed
     strategy:
       matrix:
-        arch: [x86_64]
+        arch: [x86_64, aarch64]
       fail-fast: false
       max-parallel: 1  # Prevent conflicts when using shared repository cache
 
