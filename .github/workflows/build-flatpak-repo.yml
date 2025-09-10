@@ -30,7 +30,7 @@ jobs:
 
     # Use Freedesktop runtime container
     container:
-      image: ghcr.io/andyholmes/flatter/freedesktop:25.08
+      image: ghcr.io/andyholmes/flatter/freedesktop:24.08
       options: --privileged
 
     # Support multiple architectures if needed
