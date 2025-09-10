@@ -28,7 +28,7 @@ jobs:
     name: Build Flatpak Repository
     runs-on: ubuntu-latest
 
-    # Use Freedesktop runtime container (suitable for Citrix ICA Client)
+    # Use Freedesktop runtime container
     container:
       image: ghcr.io/andyholmes/flatter/freedesktop:24.08
       options: --privileged
@@ -49,7 +49,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # Setup GPG signing for the repository (optional but recommended)
+    # Setup GPG signing for the repository
     - name: Setup GPG
       if: ${{ github.event_name != 'pull_request' && vars.ENABLE_GPG_SIGNING == 'true' }}
       id: gpg
@@ -160,6 +160,11 @@ jobs:
             margin: 0.5rem 0;
         }
         EOF
+
+    # Citrix dependencies
+    - name: Install GNOME 42 SDK and Platform
+      run: |
+        flatpak install --noninteractive flathub org.gnome.Sdk//42 org.gnome.Platform//42
 
     # Build the Flatpak using Flatter
     - name: Build Flatpak
