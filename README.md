@@ -1,10 +1,10 @@
 # com.citrix.ICAClient
 Build and/or install the Citrix Workspace app (ICAClient) as a Flatpak application for Linux.
 
-## Disclaimer
-This project and I are not affiliated with Citrix. This repository does not contain any Citrix software. When the user builds the Flatpak application using this template, the required packages are obtained from [Citrix's website](https://www.citrix.com/downloads/workspace-app/linux/workspace-app-for-linux-latest.html), where Citrix has made the installers available for download. By downloading Citrix software, you agree to and accept the [Citrix End-User License Agreement](https://www.cloud.com/content/dam/cloud/documents/legal/end-user-agreement.pdf).
+#### Disclaimer
+> This project and I are not affiliated with Citrix. This repository does not contain any Citrix software. When the user builds the Flatpak application using this template, the required packages are obtained from [Citrix's website](https://www.citrix.com/downloads/workspace-app/linux/workspace-app-for-linux-latest.html), where Citrix has made the installers available for download. By downloading Citrix software, you agree to and accept the [Citrix End-User License Agreement](https://www.cloud.com/content/dam/cloud/documents/legal/end-user-agreement.pdf).
 
-I use this flatpak on Fedora 42 and Linux Mint 22. Previous version (where this was forked from) was also tested on Bluefin, a variant of Fedora Silverblue. It is completely untested on any other distribution.
+I use this flatpak on Fedora 42 and Linux Mint 22. Previous version (where this was forked from) was also tested on Bluefin, a variant of Fedora Silverblue.
 
 This repository will be supported and updated for as long as I require this for my work. As I am a consultant and change projects fairly frequently, this will not be for that long.
 
