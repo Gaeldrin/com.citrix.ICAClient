@@ -45,7 +45,7 @@ modules:
 
         mkdir /tmp/icaclient
         echo "Unpacking.."
-        tar -zxf /tmp/linux.tar.gz --directory=/tmp/icaclient
+        tar --no-same-owner -zxf /tmp/linux.tar.gz --directory=/tmp/icaclient
 
         chmod +x install.sh
         ./install.sh
