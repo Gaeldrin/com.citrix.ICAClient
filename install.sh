@@ -6,11 +6,6 @@ if [[ "$(uname -m)" == "x86_64" ]]; then
 else
     sed -ie 's/DefaultInstallDir=.*$/DefaultInstallDir=\/app\/ICAClient/' /tmp/icaclient/linuxarm64/hinst
 fi
-# Add debug output
-uname -s
-uname -m
-echo "Content of /proc/self/maps:"
-cat /proc/self/maps
 #The installation options selected below answer yes to using the gstreamer pluging from ICAClient. The "app protection component" and USB support
 #require the installer to be run as root, so they cannot be installed in this case.
 echo -e "1\n\ny\nyes\ny\n3\n" | /tmp/icaclient/setupwfc
