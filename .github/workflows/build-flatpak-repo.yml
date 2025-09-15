@@ -9,10 +9,6 @@ on:
       - 'com.citrix.ICAClient.metainfo.xml'
       - '.github/workflows/build-flatpak-repo.yml'
 
-  # Rebuild daily to check for updates
-  schedule:
-    - cron: "0 2 * * *"  # Run at 2 AM UTC daily
-
   # Allow manual triggering
   workflow_dispatch:
     inputs:
