@@ -61,6 +61,8 @@ jobs:
           echo "${{ vars.CUSTOM_DOMAIN }}" > CNAME
         fi
 
+        RUN_DATE=$(date -u +"%Y-%m-%d")
+
         # Create a simple index.html for the repository
         cat > index.html << 'EOF'
         <!DOCTYPE html>
@@ -136,10 +138,7 @@ jobs:
             </ul>
 
             <footer style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #eee; text-align: center; color: #666;">
-                <p>Last updated: <span id="last-updated"></span></p>
-                <script>
-                    document.getElementById('last-updated').textContent = new Date().toISOString().split('T')[0];
-                </script>
+                <p>Last updated: $RUN_DATE</p>
             </footer>
         </body>
         </html>
