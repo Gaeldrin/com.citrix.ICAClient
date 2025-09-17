@@ -64,7 +64,7 @@ jobs:
         RUN_DATE=$(date -u +"%Y-%m-%d")
 
         # Create a simple index.html for the repository
-        cat > index.html << 'EOF'
+        cat > index.html << EOF
         <!DOCTYPE html>
         <html lang="en">
         <head>
