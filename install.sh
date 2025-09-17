@@ -5,6 +5,10 @@ if [[ "$(uname -m)" == "x86_64" ]]; then
     sed -ie 's/DefaultInstallDir=.*$/DefaultInstallDir=\/app\/ICAClient/' /tmp/icaclient/linuxx64/hinst
 else
     sed -ie 's/DefaultInstallDir=.*$/DefaultInstallDir=\/app\/ICAClient/' /tmp/icaclient/linuxarm64/hinst
+    # Just force correct arm platform
+    sed -i '548,563c\
+                   PLATFORM=linuxarm64\
+                   DISP_PLATFORM="Linux (arm64)"' /tmp/icaclient/setupwfc
 fi
 #The installation options selected below answer yes to using the gstreamer pluging from ICAClient. The "app protection component" and USB support
 #require the installer to be run as root, so they cannot be installed in this case.

@@ -3,7 +3,7 @@ name: Build Flatpak Repository
 on:
   # Build when there are changes to the manifest or version updates
   push:
-    branches: [master, main]
+    branches: [master]
     paths:
       - 'com.citrix.ICAClient.yml'
       - 'com.citrix.ICAClient.metainfo.xml'
@@ -31,7 +31,7 @@ jobs:
     # Support multiple architectures if needed
     strategy:
       matrix:
-        arch: [x86_64] # Citrix fails to install on ARM (aarch64)
+        arch: [aarch64]
       fail-fast: false
       max-parallel: 1  # Prevent conflicts when using shared repository cache
 
