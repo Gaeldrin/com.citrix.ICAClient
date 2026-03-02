@@ -34,6 +34,11 @@
         </agreement_section>
     </agreement>
     <releases>
+        <release version="25.08.10.111" date="2026-03-02">
+            <description>
+                <p>Updated to Citrix Workspace app version 25.08.10.111</p>
+            </description>
+        </release>
         <release version="25.05.0.44" date="2025-06-12" />
     </releases>
 </component>
