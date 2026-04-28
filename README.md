@@ -22,7 +22,7 @@ Perform the [flatpak setup](https://flatpak.org/setup/).
 Add the flathub remote, and install the Gnome SDK and runtime:
 
     flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-    flatpak install --user flathub org.gnome.Platform//42 org.gnome.Sdk//42
+    flatpak install --user flathub org.gnome.Platform//46 org.gnome.Sdk//46
 
 Clone/download this repo. Open a terminal in the folder where you downloaded this repo, and run the following:
 
