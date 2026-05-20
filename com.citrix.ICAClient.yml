@@ -1,6 +1,6 @@
 id: com.citrix.ICAClient
 runtime: org.gnome.Platform
-runtime-version: "42" # Requirements as per Citrix's site: https://docs.citrix.com/en-us/citrix-workspace-app-for-linux/system-requirements.html
+runtime-version: "46" # Requirements as per Citrix's site: https://docs.citrix.com/en-us/citrix-workspace-app-for-linux/system-requirements.html
 sdk: org.gnome.Sdk
 command: /app/bin/run.sh
 
