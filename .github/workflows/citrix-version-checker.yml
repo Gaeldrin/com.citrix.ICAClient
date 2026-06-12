@@ -20,12 +20,12 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v6
       with:
-        python-version: '3.11'
+        python-version: '3.14'
 
     - name: Install dependencies
       run: |
@@ -155,7 +155,7 @@ jobs:
 
     - name: Create Pull Request
       if: steps.version-check.outputs.needs_update == 'true' && steps.version-check.outputs.update_success == 'true'
-      uses: peter-evans/create-pull-request@v6
+      uses: peter-evans/create-pull-request@v8
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         commit-message: 'chore: update Citrix ICA Client to version ${{ steps.version-check.outputs.new_version }}'
@@ -186,7 +186,7 @@ jobs:
 
     steps:
     - name: Trigger Repository Build
-      uses: actions/github-script@v7
+      uses: actions/github-script@v9
       with:
         script: |
           const workflow_id = 'build-flatpak-repo.yml';
